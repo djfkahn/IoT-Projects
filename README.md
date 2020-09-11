@@ -1,6 +1,6 @@
-# ZigBee Projects
+# Internet of Things (IoT) Projects
 ## Purpose
-Develop 
+Develop:
 * interfaces to sensors and actuators on a ZigBee network
 * controllers that incorporate sensor data into actuator commands
 * user interfaces for configuring the control laws
