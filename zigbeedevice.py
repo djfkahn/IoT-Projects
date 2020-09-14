@@ -9,6 +9,11 @@ class ZigBeeDevice():
     def __init__(self, baseURL, deviceID, deviceType):
         self.api_path = baseURL + deviceType + '/' + deviceID
         self.deviceID = deviceID
+        ##
+        ## raise NameError exception if cannot successfully read device
+        if not self.Read():
+            print('Cannot initiate device with API path of', self.api_path)
+            raise NameError
 
     def Read(self):
         r = requests.get(url = self.api_path)

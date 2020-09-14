@@ -17,20 +17,16 @@ class UT_1_Construct(unittest.TestCase):
         self.assertEqual(uut.commands, std_cmds)
         
     def test_02_invalid_deviceID(self):
-        uut = ActuatorDevice(baseURL='http://127.0.0.1:80/api/611800078A/',
-                             deviceID='0')
+        with self.assertRaises(NameError):
+            uut = ActuatorDevice(baseURL='http://127.0.0.1:80/api/611800078A/',
+                                 deviceID='0')
         
-        self.assertEqual(uut.api_path, 'http://127.0.0.1:80/api/611800078A/lights/0')
-        self.assertEqual(uut.deviceID, '0')
-        self.assertIsNone(uut.commands)
         
     def test_02_invalid_baseURL(self):
-        uut = ActuatorDevice(baseURL='http://127.0.0.1:80/api/1234567890/',
-                             deviceID='3')
+        with self.assertRaises(NameError):
+            uut = ActuatorDevice(baseURL='http://127.0.0.1:80/api/1234567890/',
+                                 deviceID='3')
         
-        self.assertEqual(uut.api_path, 'http://127.0.0.1:80/api/1234567890/lights/3')
-        self.assertEqual(uut.deviceID, '3')
-        self.assertIsNone(uut.commands)
         
 
 class UT_2_Command(unittest.TestCase):
