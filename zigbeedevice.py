@@ -17,21 +17,38 @@ class ZigBeeDevice():
         else:
             return None
 
+    def UpdateBase(self, read_values):
+        self.etag     = read_values['etag']
+        self.modelid  = read_values['modelid']
+        self.name     = read_values['name']
+        self.state    = read_values['state']
+        self.sw_ver   = read_values['swversion']
+        self.type     = read_values['type']
+        self.uid      = read_values['uniqueid']
+        self.mfr_name = read_values['manufacturername']
 
 
 class ActuatorDevice(ZigBeeDevice):
     
     def __init__(self, baseURL, deviceID):
         super(ActuatorDevice, self).__init__(baseURL, deviceID, 'lights')
+        self.Update()
         self.commands = {'TurnOn' : json.dumps({'on': True }),
                          'TurnOff': json.dumps({'on': False})}
+
+    def Update(self):
+        temp               = self.Read()
+        self.UpdateBase(temp)
+        self.hascolor      = temp['hascolor']
+        self.lastannounced = temp['lastannounced']
+        self.lastseen      = temp['lastseen']
 
     def Command(self, cmd):
         put_response = requests.put(url=self.api_path, data=cmd)
         if put_response.ok:
-            print('Put', cmd, 'command to the', self.name)
+            print('Put', cmd, 'command to the', self.name, 'succeeded.')
         else:
-            print('Put', cmd, 'to', self.name, 'failed.')
+            print('Put', cmd, 'command to the', self.name, 'failed.')
 
     def IsOn(self):
         return self.Read()['state']['on']
@@ -58,16 +75,9 @@ class SensorDevice(ZigBeeDevice):
             self.measurement = self.state.keys()[0]
 
     def Update(self):
-        temp          = self.Read()
-        self.config   = temp['config']
-        self.etag     = temp['etag']
-        self.mfr_name = temp['manufacturername']
-        self.modelid  = temp['modelid']
-        self.name     = temp['name']
-        self.state    = temp['state']
-        self.sw_ver   = temp['swversion']
-        self.type     = temp['type']
-        self.uid      = temp['uniqueid']
+        temp        = self.Read()
+        self.UpdateBase(temp)
+        self.config = temp['config']
 
     def GetMeasurement(self):
         return self.Read()['state'][self.measurement]
