@@ -9,28 +9,27 @@ class ZigBeeDevice():
     def __init__(self, baseURL, deviceID, deviceType):
         self.api_path = baseURL + deviceType + '/' + deviceID
         self.deviceID = deviceID
-        ##
-        ## raise NameError exception if cannot successfully read device
-        if not self.Read():
-            print('Cannot initiate device with API path of', self.api_path)
-            raise NameError
 
     def Read(self):
         r = requests.get(url = self.api_path)
         if r.ok:
-            return json.loads(r.text)
+            print('Successful GET command from', self.api_path)
+            self.last_read = json.loads(r.text)
         else:
-            return None
+            ##
+            ## raise NameError exception if cannot successfully read device
+            print('Failed GET command from', self.api_path)
+            raise NameError
 
-    def UpdateBase(self, read_values):
-        self.etag     = read_values['etag']
-        self.modelid  = read_values['modelid']
-        self.name     = read_values['name']
-        self.state    = read_values['state']
-        self.sw_ver   = read_values['swversion']
-        self.type     = read_values['type']
-        self.uid      = read_values['uniqueid']
-        self.mfr_name = read_values['manufacturername']
+    def UpdateBase(self):
+        self.etag     = self.last_read['etag']
+        self.modelid  = self.last_read['modelid']
+        self.name     = self.last_read['name']
+        self.state    = self.last_read['state']
+        self.sw_ver   = self.last_read['swversion']
+        self.type     = self.last_read['type']
+        self.uid      = self.last_read['uniqueid']
+        self.mfr_name = self.last_read['manufacturername']
 
 
 class ActuatorDevice(ZigBeeDevice):
@@ -42,24 +41,27 @@ class ActuatorDevice(ZigBeeDevice):
                          'TurnOff': json.dumps({'on': False})}
 
     def Update(self):
-        temp               = self.Read()
-        self.UpdateBase(temp)
-        self.hascolor      = temp['hascolor']
-        self.lastannounced = temp['lastannounced']
-        self.lastseen      = temp['lastseen']
+        self.Read()
+        self.UpdateBase()
+        self.hascolor      = self.last_read['hascolor']
+        self.lastannounced = self.last_read['lastannounced']
+        self.lastseen      = self.last_read['lastseen']
 
     def Command(self, cmd):
-        put_response = requests.put(url=self.api_path, data=cmd)
+        put_response = requests.put(url=self.api_path+'/state',
+                                    data=self.commands[cmd])
         if put_response.ok:
-            print('Put', cmd, 'command to the', self.name, 'succeeded.')
+            print('Successful PUT', cmd, 'command to the', self.name, '.')
         else:
-            print('Put', cmd, 'command to the', self.name, 'failed.')
+            print('Failed PUT', cmd, 'command to the', self.name, '.')
 
     def IsOn(self):
-        return self.Read()['state']['on']
+        self.Update()
+        return self.state['on']
 
     def IsReachable(self):
-        return self.Read()['state']['reachable']
+        self.Update()
+        return self.state['reachable']
 
 class SensorDevice(ZigBeeDevice):
     
